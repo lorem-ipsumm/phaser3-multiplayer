@@ -1,10 +1,12 @@
 var express = require("express");
 var app = express();
-var server = require("https").Server(app);
+var server = require("http").Server(app);
 var io = require("socket.io").listen(server);
 var PORT = 8081;
 // object with player data
 var players = {};
+// allow all origins
+io.set('origins', '*:*');
 // listen for a new connection
 io.on("connection", function (socket) {
     console.log("new connection");

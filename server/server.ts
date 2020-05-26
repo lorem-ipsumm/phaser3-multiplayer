@@ -7,6 +7,8 @@ const PORT = 8081;
 // object with player data
 let players:any = {};
 
+// allow all origins
+io.set('origins', '*:*');
 // listen for a new connection
 io.on("connection", (socket : any) => {
 
