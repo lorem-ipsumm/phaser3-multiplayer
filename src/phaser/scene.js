@@ -55,7 +55,7 @@ class playGame extends Phaser.Scene {
   // create assets
   create() {
 
-    this.socket = io("http://34.86.29.163:8081");
+    this.socket = io("34.86.29.163:8081");
 
     // create a group for all other players
     this.otherPlayers = this.add.group();
