@@ -62,6 +62,10 @@ class playGame extends Phaser.Scene {
     this.x = 0;
     this.y = 0;
 
+    // set x & y for testing purposes
+    this.x = Math.floor((Math.random() * (18 - 1) + 1));
+    this.y = Math.floor((Math.random() * (18 - 1) + 1));
+
     // listen for list of all players
     this.socket.on("currentPlayers", (players) => {
       Object.keys(players).forEach((id) => {
@@ -117,8 +121,6 @@ class playGame extends Phaser.Scene {
     let topLayer = this.gameMap.createStaticLayer("top", [gameTiles], 0, 0);
 
     // generate a random spawning point and do math to center on a tile
-    // this.x = Math.floor((Math.random() * (18 - 1) + 1));
-    // this.y = Math.floor((Math.random() * (18 - 1) + 1));
 
     this.playerContainer = this.add.container(32,32);
 
