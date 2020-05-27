@@ -1,9 +1,8 @@
 import Phaser from "phaser";
 import io from "socket.io-client";
-import map from "../assets/maps/map.json";
+// import map from "../assets/maps/map.json";
 import tiles from "../assets/maps/tiles_extruded.png";
 import playerImage from "../assets/player.png";
-import otherPlayerImage from "../assets/otherPlayer.png";
 
 // initialize socket
 
@@ -18,22 +17,21 @@ class playGame extends Phaser.Scene {
   preload() {
 
     // load tilemap data
-    this.load.tilemapTiledJSON("map", map);
+    // this.load.tilemapTiledJSON("map", map);
     this.load.image("tiles", tiles);
 
     // load player
     this.load.image("player", playerImage);
-    this.load.image("otherPlayer", otherPlayerImage);
 
   }
 
   addOtherPlayers(playerInfo) {
     
     // create new sprite for other player
-    let otherPlayer = this.add.sprite(0, 0, "otherPlayer");
+    let otherPlayer = this.add.sprite(0, 0, "player");
 
     // set tint to look different
-    otherPlayer.setTint("0x00ff00");
+    otherPlayer.setTint("0x" + playerInfo.color);
 
     // assign playerID 
     otherPlayer.playerId = playerInfo.playerId;
@@ -51,6 +49,7 @@ class playGame extends Phaser.Scene {
     this.otherPlayers.add(otherPlayer); 
 
   }
+  
 
   // create assets
   create() {
@@ -58,10 +57,10 @@ class playGame extends Phaser.Scene {
     // this.socket = io.connect("34.86.29.163:8081", {secure: true});
     this.socket = io.connect(":8081");
 
+    this.ready = false;
+
     // create a group for all other players
     this.otherPlayers = this.add.group();
-    this.x = 0;
-    this.y = 0;
 
     // set x & y for testing purposes
     this.x = Math.floor((Math.random() * (18 - 1) + 1));
@@ -75,6 +74,22 @@ class playGame extends Phaser.Scene {
         if (this.socket.id === players[id].playerId) {
           this.x = players[id].x;
           this.y = players[id].y;
+
+          // update player location
+          this.tweens.add({
+            targets: this.player,
+            props: {
+              x: {value: this.x * 32 + 16, duration: 70, ease: "Linear"},
+              y: {value: this.y * 32 + 16, duration: 70, ease: "Linear"}
+            }
+          });
+
+          // set the player's color
+          this.player.setTint("0x" + players[id].color);
+
+          // set colorId for tile replacement
+          this.tileId = players[id].tileId;
+
           return;
         }
 
@@ -102,7 +117,16 @@ class playGame extends Phaser.Scene {
 
     // listen for map updates and replace tiles
     this.socket.on("updateMap", (newMap) => {
-      this.gameMap.putTilesAt(newMap, 0, 0);
+      
+      // update local version of map
+      this.serverMap = newMap;
+
+      // make sure player is moved before tile is colored
+      // it looks better
+      setTimeout(() => {
+        this.gameMap.putTilesAt(newMap, 0, 0);
+      }, 25);
+
     })
 
     // listen for other player movement
@@ -121,38 +145,39 @@ class playGame extends Phaser.Scene {
       })
     });
 
-    // load tilemap data
-    this.gameMap = this.add.tilemap("map");
-    let gameTiles = this.gameMap.addTilesetImage("tiles", "tiles", 32, 32, 1, 2);
-    let topLayer = this.gameMap.createDynamicLayer("top", [gameTiles], 0, 0);
-
-    // generate a random spawning point and do math to center on a tile
-
-    this.playerContainer = this.add.container(32,32);
-
-    // add the player
-    this.player = this.add.sprite(this.x, this.y, "player");
+    
 
     // this.playerName = this.add.text(0,0, "Player1", {fill: "#000"});
     // this.playerName.font = "Arial";
     // this.playerName.setOrigin(0, 0);
     // this.playerName.setStroke("#000", 5);
 
+    // create a blank map
+    this.gameMap = this.make.tilemap({ tileWidth: 32, tileHeight: 32, width: 30, height: 30});
 
-    // this.playerContainer.add(this.playerName);
-    // this.playerContainer.add(this.player);
+    // get tiles
+    let gameTiles = this.gameMap.addTilesetImage("tiles", "tiles", 32, 32, 1, 2);
+
+    // create blank layer for replacement
+    this.gameMap.createBlankDynamicLayer("top", gameTiles);
+
+    // add the player
+    this.player = this.add.sprite(this.x, this.y, "player");
+
+    
 
     // tell camera to follow player
-    this.cameras.main.startFollow(this.player);
+    this.cameras.main.startFollow(this.player, false, .1, .1);
 
     // add keyboard listeners
     this.keyboard = this.input.keyboard.addKeys("W, A, S, D");
 
     // movement cooldown data
-    this.COOLDOWNMAX = 7;
+    this.COOLDOWNMAX = 5;
     this.coolDown = this.COOLDOWNMAX;
   }
 
+  
   // update the players x and y coordinates
   updatePlayer(coordinates) {
 
@@ -166,24 +191,44 @@ class playGame extends Phaser.Scene {
       // send new position to server
       this.x = coordinates.x;
       this.y = coordinates.y;
+
+      this.tweens.add({
+        targets: this.player,
+        props: {
+          x: {value: this.x * 32 + 16, duration: 70, ease: "Linear"},
+          y: {value: this.y * 32 + 16, duration: 70, ease: "Linear"}
+        }
+      });
+
       this.coolDown = this.COOLDOWNMAX;
-      this.socket.emit("playerMovement", {old: {x: oldX, y: oldY}, new: coordinates});
+      this.socket.emit("playerMovement", {old: {x: oldX, y: oldY}, new: coordinates, tileId: this.tileId});
+
+      // update clientside
+      setTimeout(() => {
+        this.gameMap.putTileAt(this.tileId, oldX, oldY);
+      }, 25);
+
     }
 
   }
 
   // check if the tile is collidable
   checkCollision(coordinates) {
-
     // get the x and y of the tile 
     let playerX = this.gameMap.worldToTileX(coordinates.x * 32);
     let playerY = this.gameMap.worldToTileY(coordinates.y * 32);
 
+
     // get the tile
-    let tile = this.gameMap.getTileAt(playerX, playerY);
+    let t = this.gameMap.getTileAt(playerX, playerY);
+    let tile = this.serverMap[coordinates.y][coordinates.x];
+
+    // t.setTint(0x000000);
+
+
 
     // check collides property
-    return (tile.properties.collides === true);
+    return (tile === 1);
 
   }
 
@@ -203,13 +248,7 @@ class playGame extends Phaser.Scene {
     // this.player.setX(this.x * 32 + 16);
     // this.player.setY(this.y * 32 + 16);
 
-    this.tweens.add({
-      targets: this.player,
-      props: {
-        x: {value: this.x * 32 + 16, duration: 50, ease: "Linear"},
-        y: {value: this.y * 32 + 16, duration: 50, ease: "Linear"}
-      }
-    });
+    
 
     // update cooldown
     if (this.coolDown > 0)

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "cd ./dist/dist && npx http-server",
+    "test": "cd public && npm start",
     "start": "ts-node-dev server.ts",
     "package": "rm -rf ./dist && mkdir dist && tsc --out ./dist/server.js server.ts && cp -r ./public/dist ./dist && cp ./package.json ./dist && cp public/package.json ./dist",
     "upload": "gcloud compute scp --recurse ./dist/* us-east-instance:~/server"
