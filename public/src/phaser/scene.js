@@ -72,8 +72,11 @@ class playGame extends Phaser.Scene {
 
         // set player coords to coords set by server
         if (this.socket.id === players[id].playerId) {
+
+          // set player coordinates
           this.x = players[id].x;
           this.y = players[id].y;
+
 
           // update player location
           this.tweens.add({
@@ -89,6 +92,9 @@ class playGame extends Phaser.Scene {
 
           // set colorId for tile replacement
           this.tileId = players[id].tileId;
+
+          // set player color
+          this.color = players[id].color;
 
           return;
         }
@@ -133,6 +139,10 @@ class playGame extends Phaser.Scene {
     this.socket.on("playerMoved", (playerInfo) => {
       this.otherPlayers.getChildren().forEach((otherPlayer) => {
         if (playerInfo.playerId == otherPlayer.playerId){
+
+          // set other player color
+          otherPlayer.setTint("0x" + playerInfo.color);
+
           // tween the moving player's movement
           this.tweens.add({
             targets: otherPlayer,
@@ -143,6 +153,12 @@ class playGame extends Phaser.Scene {
           });
         }
       })
+    });
+
+    // listen for new color data
+    this.socket.on("newColor", (data) => {
+      this.color = data.color;
+      this.tileId = data.tileId;
     });
 
     
@@ -164,13 +180,12 @@ class playGame extends Phaser.Scene {
     // add the player
     this.player = this.add.sprite(this.x, this.y, "player");
 
-    
-
     // tell camera to follow player
     this.cameras.main.startFollow(this.player, false, .1, .1);
 
     // add keyboard listeners (need to improve this)
     this.keyboard = this.input.keyboard.addKeys("W, A, S, D");
+    this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.cursor = this.input.keyboard.createCursorKeys();
 
     // movement cooldown data
@@ -181,6 +196,7 @@ class playGame extends Phaser.Scene {
   
   // update the players x and y coordinates
   updatePlayer(coordinates) {
+
 
     // check cooldown and update position
     if (this.coolDown <= 0 && !this.checkCollision(coordinates)) {
@@ -235,6 +251,10 @@ class playGame extends Phaser.Scene {
 
   update() {
 
+    // change color on space
+    if (this.keySpace.isDown && this.coolDown <= 0)
+      this.socket.emit("newColorRequest");
+
     // check keyboard presses
     if (this.keyboard.W.isDown || this.cursor.up.isDown)
       this.updatePlayer({x: this.x, y: this.y - 1}); 
@@ -244,6 +264,11 @@ class playGame extends Phaser.Scene {
       this.updatePlayer({x: this.x, y: this.y + 1}); 
     if (this.keyboard.D.isDown || this.cursor.right.isDown)
       this.updatePlayer({x: this.x + 1, y: this.y}); 
+
+
+    
+    // set the player's color id
+    this.player.setTint("0x" + this.color);
 
     // update player position
     // this.player.setX(this.x * 32 + 16);

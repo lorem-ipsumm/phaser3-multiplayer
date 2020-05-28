@@ -10,8 +10,8 @@ const colors:any = {2: "0044aa", 3: "55ff55", 4: "c83737", 5: "7137c8", 6: "d455
 let players:any = {};
 
 // constants for map size
-const MAP_WIDTH = 50;
-const MAP_HEIGHT = 50;
+// const MAP_WIDTH = 50;
+// const MAP_HEIGHT = 50;
 
 let map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -47,15 +47,14 @@ let map = [
 ];
 
 
-// allow all origins
-// io.set('origins', '*:*');
-
-app.use(express.static(__dirname + '/public/dist'));
+// point to dir
+app.use(express.static(__dirname + '/dist'));
 
 // serve index page on visit
 app.get("/", (req:any, res:any) => {
-    res.sendFile(__dirname + "/public/index.html");
+        res.sendFile(__dirname + "/index.html");
 })
+
 
 // app.use(cors({origin: '*'}));
 
@@ -119,6 +118,26 @@ io.on("connection", (socket : any) => {
 
         // emit message to everyone that map should be updated
         io.emit("updateMap", map);
+
+    });
+
+    // listen for new color request
+    socket.on("newColorRequest", () => {
+
+        // pick random key and property 
+        let colorKeys = Object.keys(colors);
+        let chosenKey = colorKeys.length * Math.random() << 0;
+
+        // add new player data to list
+        players[socket.id] = {
+            x: newX,
+            y: newY,
+            playerId: socket.id,
+            tileId: colorKeys[chosenKey],
+            color: colors[colorKeys[chosenKey]]
+        }
+        // send new color data
+        socket.emit("newColor", players[socket.id]);
 
     })
 
