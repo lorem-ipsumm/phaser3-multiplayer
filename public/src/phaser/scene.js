@@ -169,8 +169,9 @@ class playGame extends Phaser.Scene {
     // tell camera to follow player
     this.cameras.main.startFollow(this.player, false, .1, .1);
 
-    // add keyboard listeners
+    // add keyboard listeners (need to improve this)
     this.keyboard = this.input.keyboard.addKeys("W, A, S, D");
+    this.cursor = this.input.keyboard.createCursorKeys();
 
     // movement cooldown data
     this.COOLDOWNMAX = 5;
@@ -215,12 +216,12 @@ class playGame extends Phaser.Scene {
   // check if the tile is collidable
   checkCollision(coordinates) {
     // get the x and y of the tile 
-    let playerX = this.gameMap.worldToTileX(coordinates.x * 32);
-    let playerY = this.gameMap.worldToTileY(coordinates.y * 32);
+    // let playerX = this.gameMap.worldToTileX(coordinates.x * 32);
+    // let playerY = this.gameMap.worldToTileY(coordinates.y * 32);
 
 
     // get the tile
-    let t = this.gameMap.getTileAt(playerX, playerY);
+    // let t = this.gameMap.getTileAt(playerX, playerY);
     let tile = this.serverMap[coordinates.y][coordinates.x];
 
     // t.setTint(0x000000);
@@ -235,13 +236,13 @@ class playGame extends Phaser.Scene {
   update() {
 
     // check keyboard presses
-    if (this.keyboard.W.isDown)
+    if (this.keyboard.W.isDown || this.cursor.up.isDown)
       this.updatePlayer({x: this.x, y: this.y - 1}); 
-    if (this.keyboard.A.isDown)
+    if (this.keyboard.A.isDown || this.cursor.left.isDown)
       this.updatePlayer({x: this.x - 1, y: this.y}); 
-    if (this.keyboard.S.isDown)
+    if (this.keyboard.S.isDown || this.cursor.down.isDown)
       this.updatePlayer({x: this.x, y: this.y + 1}); 
-    if (this.keyboard.D.isDown)
+    if (this.keyboard.D.isDown || this.cursor.right.isDown)
       this.updatePlayer({x: this.x + 1, y: this.y}); 
 
     // update player position

@@ -1,3 +1,54 @@
+* {
+  font-family: 'Rubik', sans-serif;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+}
+
+.bg {
+  z-index: -1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-filter: brightness(90%);
+          filter: brightness(90%);
+  overflow: hidden;
+}
+
+.bg::before {
+  content: "";
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  z-index: -1;
+  background-image: url("../assets/bg.png");
+  -webkit-transform: rotate(15deg);
+          transform: rotate(15deg);
+}
+
 #phaser {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -8,5 +59,16 @@
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
+  width: 100%;
+}
+
+canvas {
+  -webkit-box-shadow: 3px 3px 5px #3d3d3d;
+          box-shadow: 3px 3px 5px #3d3d3d;
+}
+
+.react-app {
+  margin-bottom: 15px;
+  font-size: 16pt;
 }
 /*# sourceMappingURL=main.css.map */

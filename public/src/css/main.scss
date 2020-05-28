@@ -1,7 +1,59 @@
+*{
+    font-family: 'Rubik', sans-serif;
+    box-sizing: border-box;
+}
+
+
+body{
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.bg {
+    z-index: -1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    // background-image: url("../assets/bg.png");
+    filter: brightness(90%);
+    overflow: hidden;
+    // transform: rotate(10deg);
+    &::before {
+        content: "";
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        top: -50%;
+        left: -50%;
+        z-index: -1;
+        background-image: url("../assets/bg.png");
+        transform: rotate(15deg);
+    }
+}
 
 // container for phaser game
 #phaser {
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
+}
+
+// canvas styling
+canvas{
+    box-shadow: 3px 3px 5px #3d3d3d;
+}
+
+// container for react items
+.react-app {
+    margin-bottom: 15px;
+    font-size: 16pt;
 }
